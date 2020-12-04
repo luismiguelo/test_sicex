@@ -30,7 +30,7 @@
 		</onException>
 
 		<!-- Inicialización de configuración para rest dsl, puerto y componente-->
-		<restConfiguration bindingMode="off" component="undertow" port="8085"/>
+		<restConfiguration bindingMode="off" component="undertow" port="8080"/>
 		
 		<!-- Opereracion resumen de cargas empresa -->
 		<rest path="{{api.rest.version}}/{{api.rest.contexto}}">
