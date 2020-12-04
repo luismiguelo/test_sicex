@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+         
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${spring.datasource.driverClassName}"/>
+        <property name="url" value="${spring.datasource.url}"/>
+        <property name="username" value="${spring.datasource.username}"/>
+        <property name="password" value="${spring.datasource.password}"/>
+	</bean>
+
+    <!-- Contexto general del componente camel -->
+    <camelContext id="camelContext" xmlns="http://camel.apache.org/schema/spring">
+		
+    	<dataFormats>
+            <json id="marshal" library="Jackson" useList="true" prettyPrint="true"/>
+        </dataFormats>
+        
+		<!-- Bloque de excepción general donde será renderizado cada error de componente y clases bean java-->
+		<onException>
+			<exception>java.lang.Exception</exception>
+            <handled><simple>true</simple></handled>
+            <transform><constant></constant></transform>
+            <setHeader headerName="Exchange.HTTP_RESPONSE_CODE"><constant>502</constant></setHeader>
+			<log message="${exception.message}" loggingLevel="ERROR"></log>
+		</onException>
+
+		<!-- Inicialización de configuración para rest dsl, puerto y componente-->
+		<restConfiguration bindingMode="off" component="undertow" port="8080"/>
+		
+		<!-- Opereracion resumen de cargas empresa -->
+		<rest path="{{api.rest.version}}/{{api.rest.contexto}}">
+			<post uri="{{api.rest.operacion17}}">
+				<to uri="direct:runServiceCargasEmpresa"/>
+			</post>
+		</rest>
+		
+		<!-- Opereracion resumen de cargas de Trabajador -->
+		<rest path="{{api.rest.version}}/{{api.rest.contexto}}">
+			<post uri="{{api.rest.operacion18}}">
+				<to uri="direct:runServiceCargasTrabajador"/>
+			</post>
+		</rest>
+		
+		<!-- Ruta Camel para el Resumen de Cargas de Empresa -->
+        <route id="ResumenCargasFamiliares">
+        	
+        	<from id="_from1" uri="direct:runServiceCargasEmpresa"/>
+        	
+        	<log loggingLevel="INFO" message="Consulta Resumen de Cargas de Empresa"/>
+        	
+        	<log loggingLevel="INFO" message="BodyRequest ${body}"/>
+        	
+        	<process id="process" ref="procesadorRequest"/>
+        	
+         	<!-- Seteando elementos del Body para utilizar de parametros en el SP -->
+         	<setProperty propertyName="RutEmpresa"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
+         	<setProperty propertyName="RutTrab"><jsonpath>$.RutTrab</jsonpath></setProperty>
+         	<setProperty propertyName="Contexto"><jsonpath>$.Contexto</jsonpath></setProperty>
+         	<setProperty propertyName="PorVencer"><jsonpath>$.PorVencer</jsonpath></setProperty>
+         	<setProperty propertyName="espouri"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
+			
+			<toD uri="sql:{CALL SP_COM_RESUMENCARGASFAMILIARESEMPRESA ('${property.RutEmpresa}','${property.RutTrab}','${property.Contexto}','${property.PorVencer}','${property.Tramo}')}"/>
+        	
+        	<process id="process_ws017" ref="procesadorResumen"/>
+        	
+        	<setHeader headerName="Content-Type">
+                <constant>application/json; charset:utf-8</constant>
+            </setHeader>
+            
+        	<marshal ref="marshal"/>
+        	
+        	<log loggingLevel="INFO" message="BodyResponse ${body}"/>
+
+        </route >
+        
+        <!-- Ruta Camel para Cargas Familiares Trabajador -->
+        <route id="CargasFamiliaresEmpresa">
+        	
+        	<from id="_from1" uri="direct:runServiceCargasTrabajador"/>
+        	<log loggingLevel="INFO" message="Consulta Cargas de Trabajador"/>
+        	
+        	<log loggingLevel="INFO" message="BodyRequest ${body}"/>
+        	
+         	<!-- Seteando elementos del Body para utilizar de parametros en el SP -->
+         	<setProperty propertyName="RutEmpresa"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
+         	<setProperty propertyName="RutTrab"><jsonpath>$.RutTrab</jsonpath></setProperty>
+         	<setProperty propertyName="Contexto"><jsonpath>$.Contexto</jsonpath></setProperty>
+         	<setProperty propertyName="PorVencer"><jsonpath>$.PorVencer</jsonpath></setProperty>
+         	<setProperty propertyName="espouri"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
+			
+			<toD uri="sql:{CALL SP_COM_CARGASFAMILIARESEMPRESA ('${property.RutEmpresa}','${property.RutTrab}','${property.Contexto}','${property.PorVencer}','${property.Tramo}')}"/>
+			
+			<process id="process_ws018" ref="procesadorCargas"/>
+        	
+        	<setHeader headerName="Content-Type">
+                <constant>application/json; charset:utf-8</constant>
+            </setHeader>
+            
+        	<marshal ref="marshal"/>
+        	
+        	<log loggingLevel="INFO" message="BodyResponse ${body}"/>
+
+        </route>
+       
+    </camelContext>
+	
+	<bean class="cl.losheroes.cargasfamiliares.procesadores.ProcesadorRequestService" id="procesadorRequest"/>
+	<bean class="cl.losheroes.cargasfamiliares.procesadores.ProcesadorResumenCargas" id="procesadorResumen"/>
+	<bean class="cl.losheroes.cargasfamiliares.procesadores.ProcesadorCargasFamiliares" id="procesadorCargas"/>
+	
+</beans>
