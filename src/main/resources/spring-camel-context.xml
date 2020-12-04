@@ -30,82 +30,84 @@
 		</onException>
 
 		<!-- Inicialización de configuración para rest dsl, puerto y componente-->
-		<restConfiguration bindingMode="off" component="undertow" port="8080"/>
+		<restConfiguration bindingMode="off" component="undertow" port="8085"/>
 		
 		<!-- Opereracion resumen de cargas empresa -->
 		<rest path="{{api.rest.version}}/{{api.rest.contexto}}">
-			<post uri="{{api.rest.operacion17}}">
+			<get uri="{{api.rest.operacion17}}">
 				<to uri="direct:runServiceCargasEmpresa"/>
-			</post>
+			</get>
 		</rest>
 		
 		<!-- Opereracion resumen de cargas de Trabajador -->
-		<rest path="{{api.rest.version}}/{{api.rest.contexto}}">
-			<post uri="{{api.rest.operacion18}}">
-				<to uri="direct:runServiceCargasTrabajador"/>
-			</post>
-		</rest>
+<!-- 		<rest path="{{api.rest.version}}/{{api.rest.contexto}}"> -->
+<!-- 			<post uri="{{api.rest.operacion18}}"> -->
+<!-- 				<to uri="direct:runServiceCargasTrabajador"/> -->
+<!-- 			</post> -->
+<!-- 		</rest> -->
 		
 		<!-- Ruta Camel para el Resumen de Cargas de Empresa -->
         <route id="ResumenCargasFamiliares">
         	
         	<from id="_from1" uri="direct:runServiceCargasEmpresa"/>
         	
-        	<log loggingLevel="INFO" message="Consulta Resumen de Cargas de Empresa"/>
+        	<log loggingLevel="INFO" message="Consulta "/>
         	
-        	<log loggingLevel="INFO" message="BodyRequest ${body}"/>
+<!--         	<log loggingLevel="INFO" message="BodyRequest ${body}"/> -->
         	
-        	<process id="process" ref="procesadorRequest"/>
+<!--         	<process id="process" ref="procesadorRequest"/> -->
         	
-         	<!-- Seteando elementos del Body para utilizar de parametros en el SP -->
-         	<setProperty propertyName="RutEmpresa"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
-         	<setProperty propertyName="RutTrab"><jsonpath>$.RutTrab</jsonpath></setProperty>
-         	<setProperty propertyName="Contexto"><jsonpath>$.Contexto</jsonpath></setProperty>
-         	<setProperty propertyName="PorVencer"><jsonpath>$.PorVencer</jsonpath></setProperty>
-         	<setProperty propertyName="espouri"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
+<!--          	Seteando elementos del Body para utilizar de parametros en el SP -->
+<!--          	<setProperty propertyName="RutEmpresa"><jsonpath>$.RutEmpresa</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="RutTrab"><jsonpath>$.RutTrab</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="Contexto"><jsonpath>$.Contexto</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="PorVencer"><jsonpath>$.PorVencer</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="espouri"><jsonpath>$.RutEmpresa</jsonpath></setProperty> -->
 			
-			<toD uri="sql:{CALL SP_COM_RESUMENCARGASFAMILIARESEMPRESA ('${property.RutEmpresa}','${property.RutTrab}','${property.Contexto}','${property.PorVencer}','${property.Tramo}')}"/>
+<!-- 			<toD uri="sql:{CALL SP_COM_RESUMENCARGASFAMILIARESEMPRESA ('${property.RutEmpresa}','${property.RutTrab}','${property.Contexto}','${property.PorVencer}','${property.Tramo}')}"/> -->
         	
-        	<process id="process_ws017" ref="procesadorResumen"/>
+<!--         	<process id="process_ws017" ref="procesadorResumen"/> -->
         	
         	<setHeader headerName="Content-Type">
                 <constant>application/json; charset:utf-8</constant>
             </setHeader>
-            
-        	<marshal ref="marshal"/>
+            <setBody>
+            	<simple>"Test servicio"</simple>
+            </setBody>
+<!--         	<marshal ref="marshal"/> -->
         	
         	<log loggingLevel="INFO" message="BodyResponse ${body}"/>
 
         </route >
         
         <!-- Ruta Camel para Cargas Familiares Trabajador -->
-        <route id="CargasFamiliaresEmpresa">
+<!--         <route id="CargasFamiliaresEmpresa"> -->
         	
-        	<from id="_from1" uri="direct:runServiceCargasTrabajador"/>
-        	<log loggingLevel="INFO" message="Consulta Cargas de Trabajador"/>
+<!--         	<from id="_from1" uri="direct:runServiceCargasTrabajador"/> -->
+<!--         	<log loggingLevel="INFO" message="Consulta Cargas de Trabajador"/> -->
         	
-        	<log loggingLevel="INFO" message="BodyRequest ${body}"/>
+<!--         	<log loggingLevel="INFO" message="BodyRequest ${body}"/> -->
         	
-         	<!-- Seteando elementos del Body para utilizar de parametros en el SP -->
-         	<setProperty propertyName="RutEmpresa"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
-         	<setProperty propertyName="RutTrab"><jsonpath>$.RutTrab</jsonpath></setProperty>
-         	<setProperty propertyName="Contexto"><jsonpath>$.Contexto</jsonpath></setProperty>
-         	<setProperty propertyName="PorVencer"><jsonpath>$.PorVencer</jsonpath></setProperty>
-         	<setProperty propertyName="espouri"><jsonpath>$.RutEmpresa</jsonpath></setProperty>
+<!--          	Seteando elementos del Body para utilizar de parametros en el SP -->
+<!--          	<setProperty propertyName="RutEmpresa"><jsonpath>$.RutEmpresa</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="RutTrab"><jsonpath>$.RutTrab</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="Contexto"><jsonpath>$.Contexto</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="PorVencer"><jsonpath>$.PorVencer</jsonpath></setProperty> -->
+<!--          	<setProperty propertyName="espouri"><jsonpath>$.RutEmpresa</jsonpath></setProperty> -->
 			
-			<toD uri="sql:{CALL SP_COM_CARGASFAMILIARESEMPRESA ('${property.RutEmpresa}','${property.RutTrab}','${property.Contexto}','${property.PorVencer}','${property.Tramo}')}"/>
+<!-- 			<toD uri="sql:{CALL SP_COM_CARGASFAMILIARESEMPRESA ('${property.RutEmpresa}','${property.RutTrab}','${property.Contexto}','${property.PorVencer}','${property.Tramo}')}"/> -->
 			
-			<process id="process_ws018" ref="procesadorCargas"/>
+<!-- 			<process id="process_ws018" ref="procesadorCargas"/> -->
         	
-        	<setHeader headerName="Content-Type">
-                <constant>application/json; charset:utf-8</constant>
-            </setHeader>
+<!--         	<setHeader headerName="Content-Type"> -->
+<!--                 <constant>application/json; charset:utf-8</constant> -->
+<!--             </setHeader> -->
             
-        	<marshal ref="marshal"/>
+<!--         	<marshal ref="marshal"/> -->
         	
-        	<log loggingLevel="INFO" message="BodyResponse ${body}"/>
+<!--         	<log loggingLevel="INFO" message="BodyResponse ${body}"/> -->
 
-        </route>
+<!--         </route> -->
        
     </camelContext>
 	
